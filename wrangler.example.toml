@@ -1,0 +1,15 @@
+name = "check-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-27"
+
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SECRET_KEY=""
+GOOGLE_ID=""
+GOOGLE_SECRET=""
+
+[[d1_databases]]
+binding = "DB"
+database_name = ""
+database_id = ""
