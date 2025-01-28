@@ -7,6 +7,8 @@ import hotel from "./routes/hotel"
 import publicHotel from "./routes/hotel.public"
 import booking from "./routes/booking"
 import publicBooking from "./routes/booking.public"
+import pax from "./routes/pax"
+import publicPax from "./routes/pax.public"
 
 const app = new Hono()
 
@@ -14,9 +16,11 @@ app.route("/auth", auth)
 app.route("/user", user)
 app.route("/hotels", hotel)
 app.route("/bookings", booking)
+app.route("/paxs", pax)
 
 app.route("/public/hotels", publicHotel)
 app.route("/public/bookings", publicBooking)
+app.route("/public/paxs", publicPax)
 
 app.get("/", (c) => {
   return c.text("¡Bienvenido!")
