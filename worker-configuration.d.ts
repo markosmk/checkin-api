@@ -3,6 +3,7 @@
 interface Env {
   DB: D1Database
   SECRET_KEY: string
+  SECRET_KEY_RESERVATION: string
   GOOGLE_ID: string
   GOOGLE_SECRET: string
 }

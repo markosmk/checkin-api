@@ -6,6 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 SECRET_KEY=""
++SECRET_KEY_RESERVATION=""
 GOOGLE_ID=""
 GOOGLE_SECRET=""
 
