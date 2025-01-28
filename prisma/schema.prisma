@@ -1,0 +1,105 @@
+// https://www.prisma.io/docs/orm/overview/databases/cloudflare-d1
+// https://www.prisma.io/docs/guides/using-prisma-orm-with-cloudflare-d1
+// https://hono.dev/examples/prisma
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  hashedPassword String
+  name           String?
+  sessions       Session[]
+  hotels         Hotel[]
+  bookings       Booking[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Hotel {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  slug          String    @unique
+  type          String?
+  subType       String?
+  coverImage    String?
+  rooms         Int?
+  website       String?
+  phone         String
+  location      Json?
+  options       Json?
+  isPublic      Boolean   @default(false)
+  fieldsAllowed Json // String[]
+  domain        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id             String    @id @default(cuid())
+  hotelId        String
+  userId         String
+  reservationId  String
+  checkin        DateTime
+  checkout       DateTime?
+  status         Status
+  nights         Int?
+  client         Json
+  observations   String?
+  requiredFields Json // String[]
+  allowedFields  Json // String[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  paxs           Pax[]
+  hotel          Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Status {
+  Unknown
+  Cancelled
+  Pending
+  Confirmed
+}
+
+model Pax {
+  id                String    @id @default(cuid())
+  bookingId         String
+  firstname         String
+  lastname          String
+  email             String
+  phone             String
+  docType           String
+  docNumber         String
+  birthdate         String?
+  nationalityCode   String?
+  city              String?
+  address           String?
+  postalCode        String?
+  arrivalDate       DateTime?
+  departureDate     DateTime?
+  carModel          String?
+  carPlate          String?
+  files             Json?
+  submittedAt       DateTime?
+  lastEditPaxAt     DateTime?
+  guestObservations String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  booking           Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
