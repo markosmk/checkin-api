@@ -1,15 +1,22 @@
 import { Hono } from "hono"
+import { HTTPException } from "hono/http-exception"
 
 import auth from "./routes/auth"
 import user from "./routes/user"
 import hotel from "./routes/hotel"
-import { HTTPException } from "hono/http-exception"
+import publicHotel from "./routes/hotel.public"
+import booking from "./routes/booking"
+import publicBooking from "./routes/booking.public"
 
 const app = new Hono()
 
 app.route("/auth", auth)
 app.route("/user", user)
-app.route("/hotel", hotel)
+app.route("/hotels", hotel)
+app.route("/bookings", booking)
+
+app.route("/public/hotels", publicHotel)
+app.route("/public/bookings", publicBooking)
 
 app.get("/", (c) => {
   return c.text("¡Bienvenido!")
@@ -20,7 +27,8 @@ app.notFound((c) => {
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
-    return err.getResponse()
+    // return err.getResponse()
+    return c.json({ message: err.message || err.getResponse() }, err.status)
   }
   console.error("Unhandled Error:", err)
   return c.json({ message: "Internal Server Error" }, 500)
