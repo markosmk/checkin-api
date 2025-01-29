@@ -23,9 +23,6 @@ importers:
       hono:
         specifier: ^4.6.19
         version: 4.6.19
-      uuid:
-        specifier: ^11.0.5
-        version: 11.0.5
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -442,10 +439,6 @@ packages:
   unenv@2.0.0-rc.0:
     resolution: {integrity: sha512-H0kl2w8jFL/FAk0xvjVing4bS3jd//mbg1QChDnn58l9Sc5RtduaKmLAL8n+eBw5jJo8ZjYV7CrEGage5LAOZQ==}
 
-  uuid@11.0.5:
-    resolution: {integrity: sha512-508e6IcKLrhxKdBbcA2b4KQZlLVp2+J5UwQ6F7Drckkc5N9ZJwFa4TgWtsww9UG8fGHbm6gbV19TdM5pQ4GaIA==}
-    hasBin: true
-
   workerd@1.20250124.0:
     resolution: {integrity: sha512-EnT9gN3M9/UHRFPZptKgK36DLOW8WfJV7cjNs3zstVbmF5cpFaHCAzX7tXWBO6zyvW/+EjklJPFtOvfatiZsuQ==}
     engines: {node: '>=16'}
@@ -810,8 +803,6 @@ snapshots:
       ohash: 1.1.4
       pathe: 1.1.2
       ufo: 1.5.4
-
-  uuid@11.0.5: {}
 
   workerd@1.20250124.0:
     optionalDependencies:
