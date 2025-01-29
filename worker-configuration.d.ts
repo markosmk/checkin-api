@@ -2,8 +2,10 @@
 
 interface Env {
   DB: D1Database
+  FRONTEND_URL: string
   SECRET_KEY: string
   SECRET_KEY_RESERVATION: string
+  SERVICE_EMAIL_API_KEY: string
   GOOGLE_ID: string
   GOOGLE_SECRET: string
 }

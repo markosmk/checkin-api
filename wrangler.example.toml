@@ -1,12 +1,13 @@
 name = "check-api"
 main = "src/index.ts"
 compatibility_date = "2025-01-27"
-
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
+FRONTEND_URL=""
 SECRET_KEY=""
-+SECRET_KEY_RESERVATION=""
+SECRET_KEY_RESERVATION=""
+SERVICE_EMAIL_API_KEY=""
 GOOGLE_ID=""
 GOOGLE_SECRET=""
 
