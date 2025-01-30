@@ -13,7 +13,7 @@ user.get("/profile", async (c) => {
   const payload = c.get("jwtPayload")
   const userId = payload.userId
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) {
     throw new HTTPException(404, { message: "Usuario no encontrado" })
@@ -29,7 +29,7 @@ user.put("/profile", async (c) => {
 
   const { name, email } = await c.req.json()
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const user = await prisma.user.update({
     where: { id: userId },
     data: { name, email },

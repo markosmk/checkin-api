@@ -20,7 +20,7 @@ publicPax.post("/:bookingId", async (c) => {
   const decoded = await verifyToken(token, c.env.SECRET_KEY_RESERVATION)
   if (!decoded) throw new HTTPException(403, { message: "Token inválido o expirado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const booking = await prisma.booking.findFirst({
     where: { id: bookingId, reservationId: decoded.reservationId, hotelId: decoded.hotelId },
   })
@@ -54,7 +54,7 @@ publicPax.put("/:id", zValidator("json", updatePaxSchema), async (c) => {
   const decoded = await verifyToken(token, c.env.SECRET_KEY_RESERVATION)
   if (!decoded) throw new HTTPException(403, { message: "Token inválido o expirado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const pax = await prisma.pax.findFirst({
     where: { id: paxId, booking: { reservationId: decoded.reservationId, hotelId: decoded.hotelId } },
   })
@@ -80,7 +80,7 @@ publicPax.delete("/:id", async (c) => {
   const decoded = await verifyToken(token, c.env.SECRET_KEY_RESERVATION)
   if (!decoded) throw new HTTPException(403, { message: "Token inválido o expirado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const pax = await prisma.pax.findFirst({
     where: { id: paxId, booking: { reservationId: decoded.reservationId, hotelId: decoded.hotelId } },
   })

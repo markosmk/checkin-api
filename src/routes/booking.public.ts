@@ -10,7 +10,7 @@ publicBooking.get("/:id", async (c) => {
   const bookingId = c.req.param("id")
   if (!bookingId) throw new HTTPException(400, { message: "ID de reserva no proporcionado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: { paxs: true },
@@ -28,7 +28,7 @@ publicBooking.get("/reservation/refresh-token", async (c) => {
     const decoded = await verifyToken(oldToken, c.env.SECRET_KEY_RESERVATION)
     if (!decoded) throw new HTTPException(401, { message: "Token inválido." })
 
-    const prisma = await prismaClients.fetch(c.env.DB)
+    const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
     const booking = await prisma.booking.findFirst({
       where: { id: decoded.bookingId, reservationId: decoded.reservationId, hotelId: decoded.hotelId },
     })
@@ -48,7 +48,7 @@ publicBooking.get("/reservation/:reservationId", async (c) => {
   const reservationId = c.req.param("reservationId")
   if (!reservationId) throw new HTTPException(400, { message: "ID de reserva no proporcionado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const booking = await prisma.booking.findFirst({
     where: { reservationId },
     include: { hotel: true, paxs: true },

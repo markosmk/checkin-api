@@ -53,7 +53,7 @@ pax.post("/", zValidator("json", createPaxSchema), async (c) => {
 
   const bookingId = c.req.param("bookingId")
   if (!bookingId) throw new HTTPException(400, { message: "El bookingId es necesario." })
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   // Validación opcional del hotel
   const booking = await prisma.booking.findFirst({
@@ -79,7 +79,7 @@ pax.put("/:id", zValidator("json", updatePaxSchema), async (c) => {
 
   const paxId = c.req.param("id")
   if (!paxId) throw new HTTPException(400, { message: "El paxId es necesario." })
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   // Validar propiedad del pax
   const pax = await prisma.pax.findFirst({
@@ -103,7 +103,7 @@ pax.delete("/:id", async (c) => {
 
   const paxId = c.req.param("id")
   if (!paxId) throw new HTTPException(400, { message: "El paxId es necesario." })
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   const pax = await prisma.pax.findFirst({
     where: { id: paxId, booking: { userId } },
@@ -120,7 +120,7 @@ pax.get("/", async (c) => {
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
 
   const bookingId = c.req.query("bookingId")
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   const booking = await prisma.booking.findFirst({
     where: { id: bookingId, userId },

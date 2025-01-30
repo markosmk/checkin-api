@@ -40,7 +40,7 @@ hotel.post("/", zValidator("json", createHotelSchema), async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticados pa. " + userId })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const existingHotel = await prisma.hotel.findUnique({ where: { slug: data.slug } })
   if (existingHotel) {
     throw new HTTPException(409, { message: "El slug ya está en uso." })
@@ -60,7 +60,7 @@ hotel.put("/:id", zValidator("json", updateHotelSchema), async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
   const hotelId = c.req.param("id")
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   const hotel = await prisma.hotel.findUnique({ where: { id: hotelId } })
   if (!hotel || hotel.userId !== userId) {
@@ -87,7 +87,7 @@ hotel.delete("/:id", async (c) => {
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
 
   const hotelId = c.req.param("id")
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   const hotel = await prisma.hotel.findUnique({ where: { id: hotelId } })
   if (!hotel || hotel.userId !== userId) {
@@ -102,7 +102,7 @@ hotel.delete("/:id", async (c) => {
 hotel.get("/", async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   const hotels = await prisma.hotel.findMany({ where: { userId } })
 
@@ -114,7 +114,7 @@ hotel.get("/:id", async (c) => {
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
 
   const hotelId = c.req.param("id")
-  const prisma = await prismaClients.fetch(c.env.DB)
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
 
   const hotel = await prisma.hotel.findUnique({ where: { id: hotelId, userId } })
   if (!hotel) {
