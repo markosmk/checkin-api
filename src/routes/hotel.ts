@@ -5,10 +5,12 @@ import prismaClients from "../lib/prisma"
 import { Variables } from "../types/jwt"
 import { HTTPException } from "hono/http-exception"
 import { jwtMiddleware } from "../middlewares/jwt"
+import { planMiddleware } from "../middlewares/plan.middleware"
 
 const hotel = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 hotel.use("/*", jwtMiddleware)
+hotel.use("/*", planMiddleware)
 
 const createHotelSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
