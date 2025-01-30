@@ -6,6 +6,7 @@ import { z } from "zod"
 import prismaClients from "../lib/prisma"
 import { jwtMiddleware } from "../middlewares/jwt"
 import { Variables } from "../types/jwt"
+import { Status } from "@prisma/client"
 
 const booking = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -19,7 +20,7 @@ const createBookingSchema = z.object({
     lastname: z.string().min(1, "El apellido es obligatorio."),
     email: z.string().email("Correo inválido."),
   }),
-  status: z.enum(["Unknown", "Cancelled", "Pending", "Confirmed"]).default("Confirmed"),
+  status: z.enum([Status.confirmed, Status.cancelled, Status.pending, Status.unknown]).default(Status.unknown),
   checkin: z.string().datetime(),
   checkout: z.string().datetime().optional(),
   observations: z.string().optional(),
@@ -32,9 +33,9 @@ booking.post("/", zValidator("json", createBookingSchema), async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
   const data = c.req.valid("json")
 
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const hotel = await prisma.hotel.findFirst({
     where: { id: data.hotelId, userId },
   })
@@ -58,10 +59,10 @@ booking.put("/:id", zValidator("json", updateBookingSchema.partial()), async (c)
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
 
-  const prisma = await prismaClients.fetch(c.env.DB)
-  const bookingId = c.req.param("id")
   const data = c.req.valid("json")
+  const bookingId = c.req.param("id")
 
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const existingBooking = await prisma.booking.findFirst({
     where: { id: bookingId, userId },
     include: { hotel: true },
@@ -84,9 +85,9 @@ booking.put("/:id", zValidator("json", updateBookingSchema.partial()), async (c)
 booking.delete("/:id", async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
-  const prisma = await prismaClients.fetch(c.env.DB)
   const bookingId = c.req.param("id")
 
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const existingBooking = await prisma.booking.findFirst({
     where: { id: bookingId, userId },
     include: { hotel: true },
@@ -97,12 +98,12 @@ booking.delete("/:id", async (c) => {
   return c.json({ message: "Booking eliminado con éxito" }, 200)
 })
 
-// Listar bookings agrupados por hotel
+// list all bookings for a user's hotels
 booking.get("/", async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
-  const prisma = await prismaClients.fetch(c.env.DB)
 
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const hotels = await prisma.hotel.findMany({
     where: { userId },
     include: {
@@ -116,7 +117,8 @@ booking.get("/", async (c) => {
 booking.get("/:hotelId", async (c) => {
   const userId = c.get("jwtPayload")?.userId
   if (!userId) throw new HTTPException(401, { message: "No estás autenticado." })
-  const prisma = await prismaClients.fetch(c.env.DB)
+
+  const prisma = await prismaClients.fetch(c.env.DATABASE_URL)
   const hotelId = c.req.param("hotelId") as string
 
   const bookings = await prisma.booking.findMany({
