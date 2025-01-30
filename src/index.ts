@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
 
 import auth from "./routes/auth"
+import authExtended from "./routes/auth-extended"
 import user from "./routes/user"
 import hotel from "./routes/hotel"
 import publicHotel from "./routes/hotel.public"
@@ -13,6 +14,7 @@ import publicPax from "./routes/pax.public"
 const app = new Hono()
 
 app.route("/auth", auth)
+app.route("/auth", authExtended)
 app.route("/user", user)
 app.route("/hotels", hotel)
 app.route("/bookings", booking)
