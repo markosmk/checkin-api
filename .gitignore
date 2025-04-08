@@ -15,10 +15,13 @@ dist/
 node_modules/
 .wrangler
 
-# env
+# dotenv environment variable files
+
 .env
-.env.production
-.dev.vars
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
 wrangler.toml
 
 # logs
@@ -32,3 +35,10 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# wrangler project
+.dev.vars
+.wrangler/
+
+# worker env types
+worker-configuration.d.ts

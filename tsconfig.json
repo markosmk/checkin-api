@@ -5,13 +5,11 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "lib": [
-      "ESNext"
-    ],
-    "types": [
-      "@cloudflare/workers-types/2023-07-01"
-    ],
+    "lib": ["ESNext"],
+    "types": ["./worker-configuration.d.ts", "node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
+  "exclude": ["test"],
+  "include": ["worker-configuration.d.ts", "src/**/*.ts"]
 }
