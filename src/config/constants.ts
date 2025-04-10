@@ -1,5 +1,5 @@
-/** 10 hours */
-export const EXPIRE_TIME_VERIFICATION = 1000 * 60 * 60 * 10 // or only 15min
+/** 25 min */
+export const EXPIRE_TIME_VERIFICATION = 1000 * 60 * 60 * 25
 /** 2 hours */
 export const EXPIRE_TIME_RESET_PASSWORD = 1000 * 60 * 60 * 2
 /** 5 min */
