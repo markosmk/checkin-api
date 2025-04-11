@@ -6,10 +6,9 @@ import { z } from "zod"
 
 import { App } from "../../types"
 import * as userService from "../users/users.service"
-import { updateBookingSchema } from "../bookings/bookings.schema"
 import { oauthAccounts, users } from "../../db/schema"
 import * as cookiesService from "../auth/cookie.service"
-import { UpdateUserShema } from "../users/users.schema"
+import { UpdateUserSchema } from "../users/users.schema"
 
 const user = new Hono<App>()
 
@@ -20,7 +19,7 @@ user.get("/", async (c) => {
   return c.json(result)
 })
 
-user.put("/", zValidator("json", UpdateUserShema), async (c) => {
+user.put("/", zValidator("json", UpdateUserSchema), async (c) => {
   const userId = c.get("session").userId
   const db = c.get("db")
   const data = c.req.valid("json")
