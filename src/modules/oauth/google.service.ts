@@ -61,10 +61,13 @@ export const createGoogleSession = async ({
         })
       }
 
-      // update verify email if its necesary and is not verified yet
-      if (!existingUser.emailVerified && verified_email) {
-        await db.update(users).set({ emailVerified: 1 }).where(eq(users.id, existingUser.id))
-      }
+      await db
+        .update(users)
+        .set({
+          emailVerified: !existingUser.emailVerified && verified_email ? true : false,
+          lastLogin: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
 
       const newSessionId = sessionService.generateSessionToken()
       return sessionService.createSession(db, newSessionId, existingUser.id)
