@@ -6,9 +6,10 @@ import { z } from "zod"
 
 import { App } from "../../types"
 import * as userService from "../users/users.service"
-import { UpdateUserShema } from "../bookings/bookings.schema"
+import { updateBookingSchema } from "../bookings/bookings.schema"
 import { oauthAccounts, users } from "../../db/schema"
 import * as cookiesService from "../auth/cookie.service"
+import { UpdateUserShema } from "../users/users.schema"
 
 const user = new Hono<App>()
 
