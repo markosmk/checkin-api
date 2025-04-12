@@ -1,7 +1,17 @@
 import type { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
 import type { HTTPResponseError } from "hono/types"
+import { ContentfulStatusCode } from "hono/utils/http-status"
 import { ZodError } from "zod"
+
+export class AppException extends HTTPException {
+  code?: string
+
+  constructor(status: ContentfulStatusCode, options: { message: string; code?: string }) {
+    super(status, { message: options.message })
+    this.code = options.code
+  }
+}
 
 export function errorHandle(err: Error | HTTPResponseError, c: Context) {
   // Validacion Zod
@@ -30,9 +40,13 @@ export function errorHandle(err: Error | HTTPResponseError, c: Context) {
   //   })
   // }
 
+  if (err instanceof AppException) {
+    return c.json({ message: err.message || err.getResponse(), code: err.code ?? "", status: err.status }, err.status)
+  }
+
   if (err instanceof HTTPException) {
     // return err.getResponse()
-    return c.json({ message: err.message || err.getResponse() }, err.status)
+    return c.json({ message: err.message || err.getResponse(), status: err.status }, err.status)
   }
 
   if (err instanceof Error) {
