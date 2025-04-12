@@ -16,7 +16,7 @@ export type AdditionalHotelProps = {
 export const BookingStatus = {
   PENDING: "pending",
   CONFIRMED: "confirmed",
-  CANCELLED: "cancelled",
+  CANCELED: "canceled",
   COMPLETED: "completed",
   UNKNOWN: "unknown",
 } as const
@@ -53,3 +53,30 @@ export type FilesBooking = {
 
 // to customize colors, or style page..
 export type OptionsHotel = {}
+
+export const SubscriptionPlan = {
+  FREE: "free",
+  PRO: "pro",
+  // BUSINESS: "business",
+} as const
+export type SubscriptionPlan = (typeof SubscriptionPlan)[keyof typeof SubscriptionPlan]
+
+export enum SubscriptionStatus {
+  ACTIVE = "active",
+  CANCELED = "canceled",
+  PAUSED = "paused",
+  PAST_DUE = "past_due",
+  UNPAID = "unpaid",
+}
+
+export enum BillingCycle {
+  MONTHLY = "monthly",
+  ANNUAL = "annual",
+}
+
+export enum PaymentStatus {
+  PENDING = "pending",
+  SUCCESS = "success", // or completed
+  FAILED = "failed",
+  REFUNDED = "refunded",
+}

@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2"
 import { InferSelectModel, relations } from "drizzle-orm"
-import { sqliteTable, text, integer, index, uniqueIndex, foreignKey, primaryKey } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from "drizzle-orm/sqlite-core"
 import {
   AdditionalPaxProps,
   BookingStatus,
@@ -8,6 +8,10 @@ import {
   FilesBooking,
   OptionsHotel,
   AdditionalHotelProps,
+  SubscriptionPlan,
+  SubscriptionStatus,
+  BillingCycle,
+  PaymentStatus,
 } from "./enum"
 
 export const users = sqliteTable(
@@ -21,7 +25,6 @@ export const users = sqliteTable(
     name: text("name"),
     avatar: text("avatar"),
     emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
-    subscriptionId: text("subscription_id"),
     lastLogin: integer("last_login", { mode: "timestamp_ms" }),
     createdAt: text("created_at")
       .$defaultFn(() => new Date().toISOString())
@@ -30,7 +33,8 @@ export const users = sqliteTable(
       .notNull()
       .$defaultFn(() => new Date().toISOString())
       .$onUpdateFn(() => new Date().toISOString()),
-    // deletedAt: text("deleted_at"),
+    // use this when user has suscription, but not active, then delete account user (not delete user db)
+    deletedAt: text("deleted_at"),
   },
   (table) => [
     uniqueIndex("users_email_idx").on(table.email),
@@ -43,7 +47,7 @@ export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
   expiresAt: integer("expires_at", {
     mode: "timestamp",
   }).notNull(),
@@ -67,7 +71,7 @@ export const usersTokens = sqliteTable(
     userId: text("user_id")
       .notNull()
       .unique()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     typeUse: text("type_use").$type<TypeUseToken>().notNull().default(TypeUseToken.RESET_PASSWORD),
     email: text("email").notNull(),
     code: text("code").notNull(),
@@ -89,7 +93,7 @@ export const oauthAccounts = sqliteTable(
     providerUserId: text("provider_user_id").notNull().unique(),
     userId: text("user_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
   },
   (table) => [primaryKey({ columns: [table.provider, table.providerUserId] })]
 )
@@ -103,7 +107,7 @@ export const hotels = sqliteTable(
       .$defaultFn(() => createId()),
     userId: text("user_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
     coverImage: text("cover_image"),
@@ -137,7 +141,7 @@ export const bookings = sqliteTable(
       .$defaultFn(() => createId()),
     hotelId: text("hotel_id")
       .notNull()
-      .references(() => hotels.id),
+      .references(() => hotels.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
@@ -163,10 +167,10 @@ export const bookings = sqliteTable(
       .$onUpdateFn(() => new Date().toISOString()),
   },
   (table) => [
-    index("Booking_hotelId_idx").on(table.hotelId),
-    index("Booking_reservationId_idx").on(table.reservationId),
-    index("Booking_userId_idx").on(table.userId),
-    index("Booking_reservation_detail").on(table.id, table.reservationId, table.hotelId),
+    index("booking_hotelId_idx").on(table.hotelId),
+    index("booking_reservationId_idx").on(table.reservationId),
+    index("booking_userId_idx").on(table.userId),
+    index("booking_reservation_detail").on(table.id, table.reservationId, table.hotelId),
   ]
 )
 export type Booking = InferSelectModel<typeof bookings>
@@ -179,7 +183,7 @@ export const paxs = sqliteTable(
       .$defaultFn(() => createId()),
     bookingId: text("booking_id")
       .notNull()
-      .references(() => bookings.id),
+      .references(() => bookings.id, { onDelete: "cascade" }),
     firstname: text().notNull(),
     lastname: text().notNull(),
     birthDate: text("birth_date"), // autocomplete with OCR
@@ -204,15 +208,71 @@ export const paxs = sqliteTable(
       .$defaultFn(() => new Date().toISOString())
       .$onUpdateFn(() => new Date().toISOString()),
   },
+  (table) => [index("pax_bookingId_idx").on(table.bookingId)]
+)
+
+export const subscriptions = sqliteTable(
+  "subscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("user_id")
+      .notNull()
+      // restric:"not allow to delete user if have active subscription"
+      .references(() => users.id, { onDelete: "restrict", onUpdate: "cascade" }),
+    gatewayCustomerId: text("gateway_customer_id").notNull(),
+    gatewaySubscriptionId: text("gateway_subscription_id").notNull(),
+    gatewayPriceId: text("gateway_price_id").notNull(),
+    gatewayCurrentPeriodEnd: text("gateway_current_period_end").notNull(), // Iso date string
+    subscribedAt: text("subscribed_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()), // as createdAt
+    hadTrial: integer("had_trial", { mode: "boolean" }).default(false).notNull(),
+    trialEndsAt: text("trial_ends_at"), // ISO date
+    canceledAt: text("canceled_at"), // ISO date
+    plan: text().$type<SubscriptionPlan>().default(SubscriptionPlan.FREE).notNull(),
+    status: text().$type<SubscriptionStatus>().default(SubscriptionStatus.ACTIVE).notNull(),
+    billingCycle: text().$type<BillingCycle>().notNull(),
+    nextBillingDate: text("next_billing_date"), // Iso date string
+    updatedAt: text("updated_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString())
+      .$onUpdateFn(() => new Date().toISOString()),
+  },
   (table) => [
-    index("Pax_bookingId_idx").on(table.bookingId),
-    foreignKey({
-      columns: [table.bookingId],
-      foreignColumns: [bookings.id],
-      name: "Pax_bookingId_fkey",
-    })
-      .onUpdate("cascade")
-      .onDelete("cascade"),
+    uniqueIndex("subscriptions_gateway_customer_id_idx").on(table.gatewayCustomerId),
+    uniqueIndex("subscriptions_gateway_subscription_id_idx").on(table.gatewaySubscriptionId),
+    index("subscriptions_user_id_idx").on(table.userId),
+    uniqueIndex("subscriptions_user_id_idx").on(table.userId),
+  ]
+)
+
+export const transactions = sqliteTable(
+  "transactions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict", onUpdate: "cascade" }),
+    subscriptionId: text("subscription_id")
+      .notNull()
+      .references(() => subscriptions.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    amount: integer("amount", { mode: "number" }).notNull(),
+    currency: text("currency").$type<"ARS" | "USD">().default("ARS").notNull(),
+    status: text().$type<PaymentStatus>().notNull(),
+    description: text(),
+    gateway: text(), // mercadopago | stripe
+    gatewayTransactionId: text("gateway_transaction_id"),
+    createdAt: text("created_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+  },
+  (table) => [
+    index("transaction_subscriptionId_idx").on(table.subscriptionId),
+    index("transaction_userId_idx").on(table.userId),
   ]
 )
 
@@ -247,13 +307,32 @@ export const userRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
   hotels: many(hotels),
   tokens: many(usersTokens),
-  // subscriptions: many(subscriptions),
-  // transactions: many(transactions),
+  subscriptions: many(subscriptions),
+  transactions: many(transactions),
 }))
 
 export const userTokensRelations = relations(usersTokens, ({ one }) => ({
   user: one(users, {
     fields: [usersTokens.userId],
     references: [users.id],
+  }),
+}))
+
+export const subscriptionRelations = relations(subscriptions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+  transactions: many(transactions),
+}))
+
+export const transactionRelations = relations(transactions, ({ one }) => ({
+  user: one(users, {
+    fields: [transactions.userId],
+    references: [users.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [transactions.subscriptionId],
+    references: [subscriptions.id],
   }),
 }))
