@@ -32,6 +32,7 @@ export type App = {
     // dbTEST: DBTEST // -> Testing
     user: schema.User
     session: schema.Session
+    subscription: schema.Subscription
     // booking: { id: string; checkin: string; checkout?: string; status: BookingStatus; maxPaxs: number | null }
     // hotel: { id?: string; slug: string; name: string }
   } & TokenPayload
