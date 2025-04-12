@@ -16,7 +16,7 @@ export type AdditionalHotelProps = {
 export const BookingStatus = {
   PENDING: "pending",
   CONFIRMED: "confirmed",
-  CANCELED: "canceled",
+  CANCELLED: "cancelled",
   COMPLETED: "completed",
   UNKNOWN: "unknown",
 } as const
@@ -61,22 +61,25 @@ export const SubscriptionPlan = {
 } as const
 export type SubscriptionPlan = (typeof SubscriptionPlan)[keyof typeof SubscriptionPlan]
 
-export enum SubscriptionStatus {
-  ACTIVE = "active",
-  CANCELED = "canceled",
-  PAUSED = "paused",
-  PAST_DUE = "past_due",
-  UNPAID = "unpaid",
-}
+export const SubscriptionStatus = {
+  ACTIVE: "active", // or authorized
+  CANCELLED: "cancelled",
+  PAUSED: "paused",
+  PAST_DUE: "past_due", // estado intermedio antes de Free.
+  UNPAID: "unpaid", // not used..
+} as const
+export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
 
-export enum BillingCycle {
-  MONTHLY = "monthly",
-  ANNUAL = "annual",
-}
+export const BillingCycle = {
+  MONTHLY: "monthly",
+  YEARLY: "yearly",
+} as const
+export type BillingCycle = (typeof BillingCycle)[keyof typeof BillingCycle]
 
-export enum PaymentStatus {
-  PENDING = "pending",
-  SUCCESS = "success", // or completed
-  FAILED = "failed",
-  REFUNDED = "refunded",
-}
+export const PaymentStatus = {
+  PENDING: "pending",
+  SUCCEEDED: "succeeded", // or completed?
+  FAILED: "failed",
+  UNKNOWN: "unknown",
+} as const
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
