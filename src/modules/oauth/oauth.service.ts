@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { HTTPException } from "hono/http-exception"
 import { users } from "../../db/schema"
-import { DB } from "../../types"
+import type { DB } from "../../types"
 
 export const setPassword = async (db: DB, userId: string, newPassword: string) => {
   const user = await db.query.users.findFirst({
