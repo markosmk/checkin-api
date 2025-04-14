@@ -3,14 +3,13 @@ import { and, eq } from "drizzle-orm"
 import bcrypt from "bcryptjs"
 import { HTTPException } from "hono/http-exception"
 import { App, DB } from "../../types"
-import { TypeUseToken, users, usersTokens } from "../../db/schema"
+import { subscriptions, TypeUseToken, users, usersTokens } from "../../db/schema"
 import { LoginSchemaInput, RegisterSchemaInput, ResetPasswordSchemaInput } from "./auth.schema"
 import {
   EXPIRE_TIME_RESET_PASSWORD,
   EXPIRE_TIME_VERIFICATION,
   TIME_EXPIRE_SESSION,
   TIME_THROTTLE,
-  VERIFY_EMAIL,
 } from "../../config/constants"
 import { sendEmail } from "../../lib/email"
 import * as sessionService from "./session.service"
@@ -18,6 +17,9 @@ import * as tokenService from "./token.service"
 import * as cookieService from "./cookie.service"
 import { Context } from "hono"
 import { getDeviceInfo } from "../../utils/helper"
+import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "../../db/enum"
+import { AppException } from "../../utils/error-handle"
+import { EmailTemplate } from "../../lib/email-templates"
 
 // Helpers
 export const hashPassword = async (password: string): Promise<string> => {
@@ -79,15 +81,11 @@ export const register = async (db: DB, input: RegisterSchemaInput, envs: Env) =>
     where: eq(users.email, input.email.toLowerCase()),
   })
   if (existingUser) {
-    if (existingUser.emailVerified) {
-      throw new HTTPException(409, { message: "El correo ingresado ya está registrado y activado." })
-    }
-
-    if (VERIFY_EMAIL && !existingUser.emailVerified) {
-      throw new HTTPException(409, {
+    if (!existingUser.emailVerified) {
+      throw new AppException(409, {
         message:
           "Ya tienes una cuenta pendiente de activación. Revisa tu email para activarla. Puedes intentar reenviar el email de verificación.",
-        // in front show button to resend email -> resend-verification
+        code: "EMAIL_NOT_VERIFIED",
       })
     }
 
@@ -95,20 +93,13 @@ export const register = async (db: DB, input: RegisterSchemaInput, envs: Env) =>
   }
 
   const hashedPassword = await hashPassword(input.password)
-
-  const inserted = await db
+  const [newUser] = await db
     .insert(users)
     .values({
       ...input,
       email: input.email.toLowerCase(),
       password: hashedPassword,
-      emailVerified: VERIFY_EMAIL ? false : true,
-      //    subscription: {
-      //       create: {
-      //         plan: selectedPlan === SubscriptionPlan.pro ? SubscriptionPlan.pro : SubscriptionPlan.free,
-      //         trialEndsAt: selectedPlan === SubscriptionPlan.pro ? new Date(Date.now() + TRIAL_PERIOD) : null,
-      //       },
-      //     },
+      emailVerified: false,
     })
     .returning({
       id: users.id,
@@ -117,30 +108,48 @@ export const register = async (db: DB, input: RegisterSchemaInput, envs: Env) =>
       createdAt: users.createdAt,
     })
 
-  if (!inserted || inserted.length === 0) {
+  if (!newUser) {
     throw new HTTPException(500, { message: "Error interno del servidor" })
   }
 
-  if (VERIFY_EMAIL) {
-    const verificationCode = await tokenService.generateCodeInDB(
-      db,
-      inserted[0].id,
-      inserted[0].email,
-      TypeUseToken.VERIFY_EMAIL,
-      EXPIRE_TIME_VERIFICATION
-    )
+  await db.insert(subscriptions).values({
+    userId: newUser.id,
+    gatewayCustomerId: "",
+    gatewaySubscriptionId: "",
+    gatewayPriceId: "",
+    gatewayCurrentPeriodEnd: "",
+    subscribedAt: new Date().toISOString(),
+    hadTrial: false,
+    trialEndsAt: null,
+    // trialEndsAt: selectedPlan === SubscriptionPlan.pro ? new Date(Date.now() + TRIAL_PERIOD) : null,
+    plan: SubscriptionPlan.FREE,
+    // plan: selectedPlan === SubscriptionPlan.pro ? SubscriptionPlan.pro : SubscriptionPlan.free,
+    status: SubscriptionStatus.ACTIVE,
+    billingCycle: BillingCycle.MONTHLY, // o lo que decidas
+    canceledAt: null,
+    nextBillingDate: null, // o lo calculas aquí
+  })
 
-    const verifyLink = `${envs.FRONTEND_URL}/verify-email?code=${verificationCode}`
-    // TODO: change with template
-    await sendEmail({
-      to: inserted[0].email,
-      subject: "Verifica tu correo electrónico",
-      html: `Haz clic en el siguiente enlace para verificar tu correo: <a href="${verifyLink}">Verificar correo</a>`,
-      apiKey: envs.SERVICE_EMAIL_API_KEY,
-    })
-    return inserted[0]
-  }
-  // TODO: if verify is false, then login directly
+  const verificationCode = await tokenService.generateCodeInDB(
+    db,
+    newUser.id,
+    newUser.email,
+    TypeUseToken.VERIFY_EMAIL,
+    EXPIRE_TIME_VERIFICATION
+  )
+
+  const verifyLink = `${envs.FRONTEND_URL}/verify-email?code=${verificationCode}`
+  await sendEmail({
+    to: newUser.email,
+    subject: "Verifica tu correo electrónico",
+    template: EmailTemplate.VERIFY_EMAIL,
+    vars: {
+      name: newUser.name ?? "Usuario",
+      verificationLink: verifyLink,
+    },
+    envs,
+  })
+  return newUser
 }
 
 export const verifyEmail = async (db: DB, code: string) => {
@@ -214,9 +223,13 @@ export const resendVerification = async (db: DB, email: string, envs: Env) => {
 
   await sendEmail({
     to: email,
-    subject: "Verifica tu correo electrónica",
-    html: `Haz clic en el siguiente enlace para verificar tu correo: <a href="${verifyLink}">Verificar correo</a>`,
-    apiKey: envs.SERVICE_EMAIL_API_KEY,
+    subject: "Verifica tu correo electrónico",
+    template: EmailTemplate.VERIFY_EMAIL,
+    vars: {
+      name: user.name ?? "Usuario",
+      verificationLink: verifyLink,
+    },
+    envs: envs,
   })
 
   return { status: true }
@@ -228,7 +241,7 @@ export const forgotPassword = async (db: DB, email: string, envs: Env) => {
     throw new HTTPException(404, { message: "Usuario no encontrado." })
   }
 
-  if (VERIFY_EMAIL && !user.emailVerified) {
+  if (!user.emailVerified) {
     throw new HTTPException(403, {
       message: "Estas intentando restablecer tu contraseña sin haber verificado tu correo.",
     })
@@ -268,13 +281,15 @@ export const forgotPassword = async (db: DB, email: string, envs: Env) => {
   )
   const resetLink = `${envs.FRONTEND_URL}/reset-password?code=${resetCode}`
 
-  // TODO: change with template
   await sendEmail({
     to: user.email,
     subject: "Recupera tu contraseña",
-    html: `<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-             <a href="${resetLink}">Restablecer contraseña</a>`,
-    apiKey: envs.SERVICE_EMAIL_API_KEY,
+    template: EmailTemplate.RESET_PASSWORD,
+    vars: {
+      name: user.name ?? "Usuario",
+      resetLink: resetLink,
+    },
+    envs,
   })
 
   return { status: true }
