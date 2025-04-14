@@ -1,4 +1,4 @@
-import { SubscriptionPlan } from "../db/enum"
+import type { SubscriptionPlan } from "../db/enum"
 
 export const PLANS: Record<
   SubscriptionPlan,
