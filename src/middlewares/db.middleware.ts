@@ -2,7 +2,7 @@ import * as schema from "../db/schema"
 import { drizzle } from "drizzle-orm/d1"
 // import { drizzle } from "drizzle-orm/node-postgres"
 import { createFactory } from "hono/factory"
-import { App } from "../types"
+import type { App } from "../types"
 import type { Context, Next } from "hono"
 
 const factory = createFactory<App>({

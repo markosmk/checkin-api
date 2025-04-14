@@ -1,11 +1,11 @@
-import { Context, Next } from "hono"
+import type { Context, Next } from "hono"
 import { getCookie } from "hono/cookie"
 import { NAME_COOKIE_SESSION } from "../config/constants"
 import * as sessionService from "../modules/auth/session.service"
 import * as cookieService from "../modules/auth/cookie.service"
 import { env } from "hono/adapter"
 import { verifyRequestOrigin } from "../utils/helper"
-import { App } from "../types"
+import type { App } from "../types"
 
 export const sessionMiddleware = async (c: Context<App>, next: Next) => {
   // exclude auth routes
