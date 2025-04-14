@@ -20,23 +20,21 @@ type SendEmailWithTemplate<T extends EmailTemplate> = {
   subject: string
   template: T
   vars: TemplateVarsMap[T]
-  apiKey: string
-  environment: string
+  envs: Env
 }
 
 type SendEmailWithHtml = {
   to: string
   subject: string
   html: string
-  apiKey: string
-  environment: string
+  envs: Env
 }
 export async function sendEmail<T extends EmailTemplate>(options: SendEmailWithTemplate<T> | SendEmailWithHtml) {
   let finalHtml: string
 
   if ("template" in options) {
     // TypeScript know that options.template is T and options.vars is TemplateVarsMap[T]
-    finalHtml = renderTemplate(options.template, options.vars as any)
+    finalHtml = renderTemplate(options.template, options.vars as Record<keyof T, string>)
   } else {
     finalHtml = options.html
   }
@@ -46,22 +44,22 @@ export async function sendEmail<T extends EmailTemplate>(options: SendEmailWithT
   }
 
   try {
-    if (options.environment === "development") {
-      console.log("send email to: " + options.to)
-      console.log("subject: " + options.subject)
-      console.log("html: " + finalHtml)
+    if (options.envs.ENVIRONMENT === "development") {
+      console.log(`send email to: ${options.to}`)
+      console.log(`subject: ${options.subject}`)
+      console.log(`html: ${finalHtml}`)
       return true
     }
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${options.apiKey}`,
+        Authorization: `Bearer ${options.envs.SERVICE_EMAIL_API_KEY}`,
       },
       body: JSON.stringify({
         from: "onboarding@resend.dev",
         to: options.to,
-        subject: options.subject,
+        subject: `${options.subject} - ${options.envs.PLATFORM_NAME}`,
         html: finalHtml,
       }),
     })

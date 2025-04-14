@@ -25,13 +25,12 @@ export interface CheckinToCompleteVars {
 }
 
 export interface VerifyEmailVars {
-  userName: string
-  platformName: string
+  name: string
   verificationLink: string
 }
 
 export interface ResetPasswordVars {
-  userName: string
+  name: string
   resetLink: string
 }
 
@@ -76,15 +75,15 @@ const templates: Record<EmailTemplate, string> = {
 
   [EmailTemplate.VERIFY_EMAIL]: `
       <h1>Verifica tu correo electrónico</h1>
-      <p>Hola {{userName}},</p>
-      <p>Gracias por registrarte en {{platformName}}. Para activar tu cuenta, haz clic en el siguiente enlace:</p>
+      <p>Hola {{name}},</p>
+      <p>Gracias por registrarte. Para activar tu cuenta, haz clic en el siguiente enlace:</p>
       <p><a href="{{verificationLink}}">{{verificationLink}}</a></p>
       <p>Si no creaste esta cuenta, ignora este mensaje.</p>
     `,
 
   [EmailTemplate.RESET_PASSWORD]: `
       <h1>Restablece tu contraseña</h1>
-      <p>Hola {{userName}},</p>
+      <p>Hola {{name}},</p>
       <p>Recibimos una solicitud para cambiar tu contraseña. Haz clic aquí para restablecerla:</p>
       <p><a href="{{resetLink}}">{{resetLink}}</a></p>
       <p>Si no solicitaste este cambio, ignora este correo.</p>
@@ -92,7 +91,7 @@ const templates: Record<EmailTemplate, string> = {
 }
 
 export function renderTemplate(templateName: EmailTemplate, vars: Record<string, string | number>): string {
-  let tpl = templates[templateName]
+  const tpl = templates[templateName]
   return tpl.replace(/{{\s*([^}\s]+)\s*}}/g, (_, key) => {
     const val = vars[key]
     return val !== undefined ? String(val) : ""
