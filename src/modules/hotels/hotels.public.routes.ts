@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { App } from "../../types"
+import type { App } from "../../types"
 import { zValidator } from "@hono/zod-validator"
 import { and, eq } from "drizzle-orm"
 import { bookings, hotels } from "../../db/schema"

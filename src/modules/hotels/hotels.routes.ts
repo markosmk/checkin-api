@@ -1,9 +1,10 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
-import { App } from "../../types"
+import type { App } from "../../types"
 import { createCuidSchema } from "../../utils/create-cuid-schema"
 import { createHotelSchema, updateHotelSchema } from "./hotels.schema"
 import * as hotelService from "./hotels.service"
+import { applyPlanLimits } from "../../middlewares/plan-limits.middleware"
 
 const hotel = new Hono<App>()
 
@@ -27,7 +28,7 @@ hotel.get("/:id/bookings", zValidator("param", createCuidSchema("id")), async (c
   return c.json(bookings)
 })
 
-hotel.post("/", zValidator("json", createHotelSchema), async (c) => {
+hotel.post("/", applyPlanLimits, zValidator("json", createHotelSchema), async (c) => {
   const userId = c.get("session")?.userId
   const data = c.req.valid("json")
   const hotel = await hotelService.createHotel(c.get("db"), userId, data)
