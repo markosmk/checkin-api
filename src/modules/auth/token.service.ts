@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm"
-import { TypeUseToken, usersTokens } from "../../db/schema"
-import { DB } from "../../types"
+import { type TypeUseToken, usersTokens } from "../../db/schema"
+import type { DB } from "../../types"
 import { hashToken, isWithinExpirationDate } from "./session.service"
 
 // helpers

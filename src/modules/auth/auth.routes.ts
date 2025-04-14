@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
-import { App } from "../../types"
+import type { App } from "../../types"
 import { emailSchema, loginSchema, registerSchema, resetPasswordSchema } from "./auth.schema"
 import * as authService from "./auth.service"
 import * as cookieService from "./cookie.service"

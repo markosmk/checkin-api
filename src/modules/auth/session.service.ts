@@ -2,8 +2,8 @@ import { verify } from "hono/jwt"
 import crypto from "node:crypto"
 import { asc, eq } from "drizzle-orm"
 import { TIME_EXPIRE_SESSION } from "../../config/constants"
-import { Session, sessions, User, users } from "../../db/schema"
-import { CustomPayload, DB } from "../../types"
+import { type Session, sessions, type User, users } from "../../db/schema"
+import type { CustomPayload, DB } from "../../types"
 
 // follow https://lucia-auth.com/sessions/basic-api/
 // helpers

@@ -10,14 +10,14 @@ interface CookieAttributes {
   expires?: Date
 }
 
-function createCookie(nameCookie: string, value: string = "", opts: CookieAttributes): string {
+function createCookie(nameCookie: string, value = "", opts?: CookieAttributes): string {
   const basic: CookieAttributes = { sameSite: "lax", httpOnly: true, path: "/", ...opts }
   let cookieString = `${nameCookie}=${value}`
   if (basic.path) cookieString += `; Path=${basic.path}`
   if (basic.domain) cookieString += `; Domain=${basic.domain}`
   if (basic.sameSite) cookieString += `; SameSite=${basic.sameSite.charAt(0).toUpperCase() + basic.sameSite.slice(1)}`
-  if (basic.httpOnly) cookieString += `; HttpOnly`
-  if (basic.secure === true) cookieString += `; Secure`
+  if (basic.httpOnly) cookieString += "; HttpOnly"
+  if (basic.secure === true) cookieString += "; Secure"
   if (basic.maxAge) cookieString += `; Max-Age=${basic.maxAge}`
   if (basic.expires) cookieString += `; Expires=${basic.expires.toUTCString()}`
   return cookieString
