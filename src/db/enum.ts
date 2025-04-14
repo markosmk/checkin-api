@@ -52,7 +52,24 @@ export type FilesBooking = {
 }
 
 // to customize colors, or style page..
-export type OptionsHotel = {}
+export type OptionsHotel = {
+  // Branding
+  logoUrl?: string
+  coverUrl?: string
+  primaryColor?: string // "#RRGGBB"
+  secondaryColor?: string
+  fontFamily?: string
+
+  // Texts
+  welcomeTitle?: string
+  welcomeSubtitle?: string
+  thankYouMessage?: string
+
+  // Funcionality
+  extraFields?: string[] // e.g. ["vehicle", "flight", "comments"]
+  language?: string // "es" | "en" | ...
+  timeZone?: string // "America/Argentina/Buenos_Aires"
+}
 
 export const SubscriptionPlan = {
   FREE: "free",
