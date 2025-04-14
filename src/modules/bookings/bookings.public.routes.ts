@@ -2,10 +2,11 @@ import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
 import { eq } from "drizzle-orm"
 
-import { App } from "../../types"
+import type { App } from "../../types"
 import { bookings, hotels, paxs } from "../../db/schema"
 import { BookingStatus } from "../../db/enum"
 import { sendEmail } from "../../lib/email"
+import { EmailTemplate } from "../../lib/email-templates"
 
 const publicBooking = new Hono<App>()
 
@@ -53,6 +54,8 @@ publicBooking.post("/confirm", async (c) => {
       id: bookings.id,
       reservationId: bookings.reservationId,
       userId: bookings.userId,
+      checkin: bookings.checkin,
+      checkout: bookings.checkout,
     })
 
   const hotelWithEmail = await db.query.hotels.findFirst({
@@ -66,17 +69,23 @@ publicBooking.post("/confirm", async (c) => {
   })
 
   // use first hotel's email if not, then use email user.
-  const validEmail = hotelWithEmail?.email ?? hotelWithEmail?.user?.email ?? ""
-  if (validEmail && updated && contact) {
+  const hotelEmail = hotelWithEmail?.email ?? hotelWithEmail?.user?.email ?? ""
+  if (hotelEmail && updated && contact) {
     await sendEmail({
-      to: validEmail,
+      to: hotelEmail,
       subject: "Checkin confirmado",
-      html: `El checkin de ${contact.firstname} ${contact.lastname}, con Nro reserva: ${
-        updated.reservationId
-      }, ha sido completado y validado, tienen fecha y horario de llegada a las: ${
-        booking.checkin + " - " + contact.arrivalDate
-      }.`,
-      apiKey: c.env.SERVICE_EMAIL_API_KEY,
+      template: EmailTemplate.CHECKIN_COMPLETED,
+      vars: {
+        // TODO: fix correct link panel
+        adminLink: `${c.env.FRONTEND_URL}/admin/bookings/${updated.id}`,
+        reservationId: updated.reservationId,
+        checkinDate: booking.checkin,
+        checkinTime: booking.checkin, // take only hour
+        hotelManagerName: hotelWithEmail?.user?.name ?? "",
+        contactName: contact.firstname,
+        hotelName: hotel.name,
+      },
+      envs: c.env,
     })
   }
 
