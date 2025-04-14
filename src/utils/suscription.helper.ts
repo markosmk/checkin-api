@@ -1,4 +1,4 @@
-import { BillingCycle, SubscriptionPlan } from "@prisma/client"
+import type { BillingCycle, SubscriptionPlan } from "../db/enum"
 import { PRICES } from "../config/prices"
 
 export function getDaysUsed(subscribedAt: Date) {

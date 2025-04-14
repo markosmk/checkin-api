@@ -1,10 +1,10 @@
 import { sign, verify } from "hono/jwt"
-import { JWTPayload } from "hono/utils/jwt/types"
-import { TokenPayload } from "../types"
+import type { JWTPayload } from "hono/utils/jwt/types"
+import type { TokenPayload } from "../types"
 
 export interface CustomJWTPayload extends JWTPayload, TokenPayload {}
 
-export async function createToken(data: TokenPayload, secret: string, expInMinutes: number = 5): Promise<string> {
+export async function createToken(data: TokenPayload, secret: string, expInMinutes = 5): Promise<string> {
   const payload = {
     ...data,
     exp: Math.floor(Date.now() / 1000) + 60 * expInMinutes,
