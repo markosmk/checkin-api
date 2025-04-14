@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@hono/oauth-providers':
+        specifier: ^0.7.1
+        version: 0.7.1(hono@4.6.19)
       '@hono/swagger-ui':
         specifier: ^0.5.1
         version: 0.5.1(hono@4.6.19)
@@ -605,6 +608,12 @@ packages:
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
+
+  '@hono/oauth-providers@0.7.1':
+    resolution: {integrity: sha512-NJ9weiJ5Af+/Waq0q/DIMofxkKlK32pVl7/iXh/Q0dumRKftn1A41h3d5clsNtwNsKfADErtshbdD1Q89/bFag==}
+    engines: {node: '>=18.4.0'}
+    peerDependencies:
+      hono: '>=3.*'
 
   '@hono/swagger-ui@0.5.1':
     resolution: {integrity: sha512-XpUCfszLJ9b1rtFdzqOSHfdg9pfBiC2J5piEjuSanYpDDTIwpMz0ciiv5N3WWUaQpz9fEgH8lttQqL41vIFuDA==}
@@ -1533,6 +1542,10 @@ snapshots:
     optional: true
 
   '@fastify/busboy@2.1.1': {}
+
+  '@hono/oauth-providers@0.7.1(hono@4.6.19)':
+    dependencies:
+      hono: 4.6.19
 
   '@hono/swagger-ui@0.5.1(hono@4.6.19)':
     dependencies:
