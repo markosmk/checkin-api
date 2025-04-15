@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 
-import { App } from "../../types"
+import type { App } from "../../types"
 import * as userService from "./users.service"
 import { HTTPException } from "hono/http-exception"
 import { CreateUserSchema, UpdateUserSchema } from "./users.schema"

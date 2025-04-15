@@ -1,7 +1,8 @@
-import { JWTPayload } from "hono/utils/jwt/types"
+import type { JWTPayload } from "hono/utils/jwt/types"
 import type * as schema from "./db/schema"
 import type { DrizzleD1Database } from "drizzle-orm/d1"
-import { BookingStatus } from "./db/enum"
+import type { BookingStatus } from "./db/enum"
+import type { MercadoPagoConfig } from "mercadopago"
 // import type * as schemaPG from "./db/schema.pg"
 // import type { NodePgDatabase } from "drizzle-orm/node-postgres"
 
@@ -33,6 +34,7 @@ export type App = {
     user: schema.User
     session: schema.Session
     subscription: schema.Subscription
+    mercadopago: MercadoPagoConfig
     // booking: { id: string; checkin: string; checkout?: string; status: BookingStatus; maxPaxs: number | null }
     // hotel: { id?: string; slug: string; name: string }
   } & TokenPayload
