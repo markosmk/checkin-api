@@ -74,11 +74,11 @@ export type OptionsHotel = {
 export const SubscriptionPlan = {
   FREE: "free",
   PRO: "pro",
-  // BUSINESS: "business",
 } as const
 export type SubscriptionPlan = (typeof SubscriptionPlan)[keyof typeof SubscriptionPlan]
 
 export const SubscriptionStatus = {
+  PENDING: "pending", // estado intermedio antes de Free o Pro (hasta que se valide el pago).
   ACTIVE: "active", // or authorized
   CANCELLED: "cancelled",
   PAUSED: "paused",
@@ -95,8 +95,10 @@ export type BillingCycle = (typeof BillingCycle)[keyof typeof BillingCycle]
 
 export const PaymentStatus = {
   PENDING: "pending",
-  SUCCEEDED: "succeeded", // or completed?
-  FAILED: "failed",
+  APPROVED: "approved",
+  CANCELLED: "cancelled",
+  REJECTED: "rejected",
+  REFUNDED: "refunded",
   UNKNOWN: "unknown",
 } as const
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
