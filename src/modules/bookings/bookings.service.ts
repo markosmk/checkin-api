@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm"
-import { DB } from "../../types"
+import type { DB } from "../../types"
 import { bookings, hotels, paxs } from "../../db/schema"
 import { HTTPException } from "hono/http-exception"
-import { CreateBookingInput } from "./bookings.schema"
+import type { CreateBookingInput, UpdateBookingInput } from "./bookings.schema"
 import { BookingStatus } from "../../db/enum"
 
 export const createBooking = async (db: DB, userId: string, data: CreateBookingInput) => {
@@ -24,8 +24,8 @@ export const createBooking = async (db: DB, userId: string, data: CreateBookingI
   const { client, ...dataWithoutClient } = data
   const dataToUpdate = {
     ...dataWithoutClient,
-    requiredFields: data.requiredFields,
-    allowedFields: data.allowedFields,
+    // requiredFields: data.requiredFields,
+    // allowedFields: data.allowedFields,
     userId,
     hotelId: data.hotelId,
     status: BookingStatus.PENDING,
@@ -67,7 +67,7 @@ export const getBookingById = async (db: DB, userId: string, bookingId: string) 
   return results
 }
 
-export const updateBooking = async (db: DB, userId: string, id: string, data: any) => {
+export const updateBooking = async (db: DB, userId: string, id: string, data: UpdateBookingInput) => {
   const existingBooking = await db.query.bookings.findFirst({
     where: and(eq(bookings.userId, userId), eq(bookings.id, id)),
   })
@@ -100,8 +100,8 @@ export const updateBooking = async (db: DB, userId: string, id: string, data: an
     .update(bookings)
     .set({
       ...data,
-      requiredFields: data.requiredFields,
-      allowedFields: data.allowedFields,
+      // requiredFields: data.requiredFields,
+      // allowedFields: data.allowedFields,
       hotelId: existingBooking.hotelId, // Hard To exclude hotelId from update
     })
     .where(and(eq(bookings.userId, userId), eq(bookings.id, id)))

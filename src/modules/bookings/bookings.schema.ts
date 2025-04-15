@@ -1,6 +1,7 @@
 import { z } from "@hono/zod-openapi"
-import { createInsertSchema } from "drizzle-zod"
+import { createInsertSchema, createUpdateSchema } from "drizzle-zod"
 import { bookings } from "../../db/schema"
+import { BookingStatus } from "../../db/enum"
 
 export const createBookingSchema = createInsertSchema(bookings)
   .omit({
@@ -33,4 +34,8 @@ export const reservationIdSchema = z
   .max(60, "El número de reserva debe tener menos de 60 caracteres.")
   .regex(/^[a-zA-Z0-9_-]+$/, "El número de reserva solo puede contener letras, números, guiones bajos y guiones.")
 
-export const updateBookingSchema = createBookingSchema.partial()
+// export const updateBookingSchema = createBookingSchema.partial()
+export const updateBookingSchema = createUpdateSchema(bookings).extend({
+  status: z.nativeEnum(BookingStatus),
+})
+export type UpdateBookingInput = z.infer<typeof updateBookingSchema>
