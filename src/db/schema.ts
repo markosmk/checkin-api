@@ -1,46 +1,39 @@
 import { createId } from "@paralleldrive/cuid2"
-import { InferSelectModel, relations } from "drizzle-orm"
+import { type InferSelectModel, relations } from "drizzle-orm"
 import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from "drizzle-orm/sqlite-core"
 import {
-  AdditionalPaxProps,
+  type AdditionalPaxProps,
   BookingStatus,
   FieldsAvailable,
-  FilesBooking,
-  OptionsHotel,
-  AdditionalHotelProps,
+  type FilesBooking,
+  type OptionsHotel,
+  type AdditionalHotelProps,
   SubscriptionPlan,
   SubscriptionStatus,
   BillingCycle,
-  PaymentStatus,
+  type PaymentStatus,
 } from "./enum"
 
-export const users = sqliteTable(
-  "users",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    email: text("email").unique().notNull(),
-    password: text("password"),
-    name: text("name"),
-    avatar: text("avatar"),
-    emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
-    lastLogin: integer("last_login", { mode: "timestamp_ms" }),
-    createdAt: text("created_at")
-      .$defaultFn(() => new Date().toISOString())
-      .notNull(),
-    updatedAt: text("updated_at")
-      .notNull()
-      .$defaultFn(() => new Date().toISOString())
-      .$onUpdateFn(() => new Date().toISOString()),
-    // use this when user has suscription, but not active, then delete account user (not delete user db)
-    deletedAt: text("deleted_at"),
-  },
-  (table) => [
-    uniqueIndex("users_email_idx").on(table.email),
-    // uniqueIndex("users_subscription_id_idx").on(table.subscriptionId),
-  ]
-)
+export const users = sqliteTable("users", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  email: text("email").unique().notNull(),
+  password: text("password"),
+  name: text("name"),
+  avatar: text("avatar"),
+  emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
+  lastLogin: integer("last_login", { mode: "timestamp_ms" }),
+  createdAt: text("created_at")
+    .$defaultFn(() => new Date().toISOString())
+    .notNull(),
+  updatedAt: text("updated_at")
+    .notNull()
+    .$defaultFn(() => new Date().toISOString())
+    .$onUpdateFn(() => new Date().toISOString()),
+  // use this when user has suscription, but not active, then delete account user (not delete user db)
+  deletedAt: text("deleted_at"),
+})
 export type User = Omit<InferSelectModel<typeof users>, "password">
 
 export const sessions = sqliteTable("sessions", {
@@ -70,7 +63,6 @@ export const usersTokens = sqliteTable(
       .$defaultFn(() => createId()),
     userId: text("user_id")
       .notNull()
-      .unique()
       .references(() => users.id, { onDelete: "cascade" }),
     typeUse: text("type_use").$type<TypeUseToken>().notNull().default(TypeUseToken.RESET_PASSWORD),
     email: text("email").notNull(),
@@ -81,16 +73,16 @@ export const usersTokens = sqliteTable(
       .$defaultFn(() => new Date().toISOString()),
   },
   (table) => [
-    index("user_tokens_user_id_type_idx").on(table.userId, table.typeUse),
-    index("users_tokens_email_type_idx").on(table.email, table.typeUse),
+    index("users_tokens_user_id_type_use_idx").on(table.userId, table.typeUse),
+    index("users_tokens_email_type_use_idx").on(table.email, table.typeUse),
   ]
 )
 
 export const oauthAccounts = sqliteTable(
-  "oauth_account",
+  "oauth_accounts",
   {
     provider: text("provider").notNull(),
-    providerUserId: text("provider_user_id").notNull().unique(),
+    providerUserId: text("provider_user_id").notNull().unique(), // too key primary? redundancia o disonancia
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -119,7 +111,7 @@ export const hotels = sqliteTable(
     options: text("options", { mode: "json" }).$type<OptionsHotel>(), // SQLite doesn't support jsonb, storing as text
     isPublic: integer("is_public", { mode: "boolean" }).default(false).notNull(),
     isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
-    allowedFields: text("allowed_fields", { mode: "json" }).$type<FieldsAvailable[]>(),
+    // allowedFields: text("allowed_fields", { mode: "json" }).$type<FieldsAvailable[]>(),
     additionalProps: text("additional_props", { mode: "json" }).$type<AdditionalHotelProps>(), //jsonb(),
     createdAt: text("created_at")
       .notNull()
@@ -154,8 +146,8 @@ export const bookings = sqliteTable(
     isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
     isLocked: integer("is_locked", { mode: "boolean" }).default(false).notNull(),
     maxPaxs: integer("max_paxs", { mode: "number" }),
-    requiredFields: text("required_fields", { mode: "json" }).$type<FieldsAvailable[]>(),
-    allowedFields: text("allowed_fields", { mode: "json" }).$type<FieldsAvailable[]>(),
+    // requiredFields: text("required_fields", { mode: "json" }).$type<FieldsAvailable[]>(),
+    // allowedFields: text("allowed_fields", { mode: "json" }).$type<FieldsAvailable[]>(),
     signature: text("signature"), // base64 o URL
     completedAt: text("completed_at"),
     createdAt: text("created_at")
@@ -167,10 +159,11 @@ export const bookings = sqliteTable(
       .$onUpdateFn(() => new Date().toISOString()),
   },
   (table) => [
-    index("booking_hotelId_idx").on(table.hotelId),
-    index("booking_reservationId_idx").on(table.reservationId),
-    index("booking_userId_idx").on(table.userId),
-    index("booking_reservation_detail").on(table.id, table.reservationId, table.hotelId),
+    index("bookings_hotelId_idx").on(table.hotelId),
+    index("bookings_reservationId_idx").on(table.reservationId),
+    index("bookings_userId_idx").on(table.userId),
+    // TODO check if necesary index or defined other
+    index("bookings_id_reservation_id_hotel_id_idx").on(table.id, table.reservationId, table.hotelId),
   ]
 )
 export type Booking = InferSelectModel<typeof bookings>
@@ -221,32 +214,38 @@ export const subscriptions = sqliteTable(
       .notNull()
       // restric:"not allow to delete user if have active subscription"
       .references(() => users.id, { onDelete: "restrict", onUpdate: "cascade" }),
+    // Identify of gateway
     gatewayCustomerId: text("gateway_customer_id").notNull(),
     gatewaySubscriptionId: text("gateway_subscription_id").notNull(),
-    gatewayPriceId: text("gateway_price_id").notNull(),
-    gatewayCurrentPeriodEnd: text("gateway_current_period_end").notNull(), // Iso date string
+    gatewayPlanId: text("gateway_plan_id"),
+
+    // Dates Importants
     subscribedAt: text("subscribed_at")
       .notNull()
       .$defaultFn(() => new Date().toISOString()), // as createdAt
-    hadTrial: integer("had_trial", { mode: "boolean" }).default(false).notNull(),
     trialEndsAt: text("trial_ends_at"), // ISO date
     canceledAt: text("canceled_at"), // ISO date
+    gatewayNextPaymentDate: text("gateway_next_payment_date"),
+
+    // Lógic Bussinnes
+    hadTrial: integer("had_trial", { mode: "boolean" }).default(false).notNull(),
     plan: text().$type<SubscriptionPlan>().default(SubscriptionPlan.FREE).notNull(),
     status: text().$type<SubscriptionStatus>().default(SubscriptionStatus.ACTIVE).notNull(),
-    billingCycle: text().$type<BillingCycle>().notNull(),
-    nextBillingDate: text("next_billing_date"), // Iso date string
+    billingCycle: text("billing_cycle").$type<BillingCycle>().default(BillingCycle.MONTHLY).notNull(),
+    reasonCanceled: text("reason_canceled"),
     updatedAt: text("updated_at")
       .notNull()
       .$defaultFn(() => new Date().toISOString())
       .$onUpdateFn(() => new Date().toISOString()),
   },
   (table) => [
-    uniqueIndex("subscriptions_gateway_customer_id_idx").on(table.gatewayCustomerId),
+    // uniqueIndex("subscriptions_gateway_customer_id_idx").on(table.gatewayCustomerId),
     uniqueIndex("subscriptions_gateway_subscription_id_idx").on(table.gatewaySubscriptionId),
     index("subscriptions_user_id_idx").on(table.userId),
-    uniqueIndex("subscriptions_user_id_idx").on(table.userId),
+    // uniqueIndex("subscriptions_user_id_idx").on(table.userId),
   ]
 )
+export type Subscription = InferSelectModel<typeof subscriptions>
 
 export const transactions = sqliteTable(
   "transactions",
@@ -262,17 +261,17 @@ export const transactions = sqliteTable(
       .references(() => subscriptions.id, { onDelete: "cascade", onUpdate: "cascade" }),
     amount: integer("amount", { mode: "number" }).notNull(),
     currency: text("currency").$type<"ARS" | "USD">().default("ARS").notNull(),
-    status: text().$type<PaymentStatus>().notNull(),
+    status: text("status").$type<PaymentStatus>().notNull(),
     description: text(),
-    gateway: text(), // mercadopago | stripe
+    gateway: text("gateway", { enum: ["mercadopago", "stripe"] }).notNull(),
     gatewayTransactionId: text("gateway_transaction_id"),
     createdAt: text("created_at")
       .notNull()
       .$defaultFn(() => new Date().toISOString()),
   },
   (table) => [
-    index("transaction_subscriptionId_idx").on(table.subscriptionId),
-    index("transaction_userId_idx").on(table.userId),
+    index("transactions_subscriptionId_idx").on(table.subscriptionId),
+    index("transactions_userId_idx").on(table.userId),
   ]
 )
 
