@@ -1,4 +1,4 @@
-import { Context } from "hono"
+import type { Context } from "hono"
 import { timeout } from "hono/timeout"
 import { HTTPException } from "hono/http-exception"
 

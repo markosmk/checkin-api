@@ -1,12 +1,12 @@
 import type { Context, Next } from "hono"
-import { App } from "../types"
+import type { App } from "../types"
 import { eq } from "drizzle-orm"
 import { bookings } from "../db/schema"
 import { BookingStatus } from "../db/enum"
 import { z } from "zod"
 import { cuidSchema } from "../utils/create-cuid-schema"
 import { slugSchema } from "../modules/hotels/hotels.schema"
-import { createToken, verifyToken } from "../utils/security"
+import { createToken, type CustomJWTPayload, verifyToken } from "../utils/security"
 
 const paramsSchema = z.object({
   slug: slugSchema,
@@ -19,7 +19,7 @@ export const publicMiddleware = async (c: Context<App>, next: Next) => {
   const { slug, bookingId } = params
 
   const authToken = c.req.header("Authorization")
-  let payload
+  let payload: CustomJWTPayload | null = null
   if (authToken) {
     const [authScheme, token] = authToken.split(" ") as [string, string | undefined]
     if (authScheme !== "Bearer" || !token) {
@@ -29,7 +29,8 @@ export const publicMiddleware = async (c: Context<App>, next: Next) => {
     }
   }
 
-  let booking, hotel
+  let booking: { id: string; checkin: string; status: BookingStatus; maxPaxs: number | null } | null = null
+  let hotel: { slug: string; name: string } | null = null
   if (payload && payload.bookingId === bookingId && payload.slug === slug) {
     booking = {
       id: payload.booking.id,
