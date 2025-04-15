@@ -43,3 +43,8 @@ lerna-debug.log*
 # worker env types
 worker-configuration.d.ts
 migrations
+
+#others
+docs
+backups
+
