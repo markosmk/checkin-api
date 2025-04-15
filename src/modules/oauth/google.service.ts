@@ -1,9 +1,9 @@
 import type { Context } from "hono"
 import { eq } from "drizzle-orm"
-import { GoogleUser } from "@hono/oauth-providers/google"
+import type { GoogleUser } from "@hono/oauth-providers/google"
 import { createId } from "@paralleldrive/cuid2"
 import * as sessionService from "../auth/session.service"
-import { oauthAccounts, Session, User, users } from "../../db/schema"
+import { oauthAccounts, type Session, type User, users } from "../../db/schema"
 
 type CreateGoogleSessionProps = {
   c: Context
@@ -64,7 +64,8 @@ export const createGoogleSession = async ({
       await db
         .update(users)
         .set({
-          emailVerified: !existingUser.emailVerified && verified_email ? true : false,
+          // emailVerified: !existingUser.emailVerified && verified_email ? true : false,
+          emailVerified: !!(!existingUser.emailVerified && verified_email),
           lastLogin: new Date(),
         })
         .where(eq(users.id, existingUser.id))
