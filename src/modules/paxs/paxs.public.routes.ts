@@ -4,7 +4,7 @@ import { zValidator } from "@hono/zod-validator"
 import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 
-import { App } from "../../types"
+import type { App } from "../../types"
 import { paxUpdateSchema } from "./paxs.schema"
 import { createCuidSchema } from "../../utils/create-cuid-schema"
 import { paxs } from "../../db/schema"

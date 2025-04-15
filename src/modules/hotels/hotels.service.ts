@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm"
 import { HTTPException } from "hono/http-exception"
 import { bookings, hotels } from "../../db/schema"
-import { CreateHotel, UpdateHotel } from "./hotels.schema"
-import { DB } from "../../types"
+import type { CreateHotel, UpdateHotel } from "./hotels.schema"
+import type { DB } from "../../types"
 
 export const getHotels = async (db: DB, userId: string) => {
   return db.query.hotels.findMany({ where: eq(hotels.userId, userId) })
@@ -43,7 +43,7 @@ export const createHotel = async (db: DB, userId: string, data: CreateHotel) => 
 
   const hotel = await db
     .insert(hotels)
-    .values({ ...data, allowedFields: [], userId })
+    .values({ ...data, userId }) // allowedFields: [],
     .returning()
   return hotel
 }

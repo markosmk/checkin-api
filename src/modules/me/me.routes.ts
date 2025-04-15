@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm"
 import { env } from "hono/adapter"
 import { z } from "zod"
 
-import { App } from "../../types"
+import type { App } from "../../types"
 import * as userService from "../users/users.service"
 import { oauthAccounts, users } from "../../db/schema"
 import * as cookiesService from "../auth/cookie.service"

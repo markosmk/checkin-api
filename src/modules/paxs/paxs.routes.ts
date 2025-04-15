@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { App } from "../../types"
+import type { App } from "../../types"
 import { zValidator } from "@hono/zod-validator"
 import { paxInserSchema, paxUpdateSchema } from "./paxs.schema"
 import * as paxService from "./paxs.service"
