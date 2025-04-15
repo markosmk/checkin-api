@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { App } from "../../types"
+import type { App } from "../../types"
 import { sessions } from "../../db/schema"
 import { and, eq } from "drizzle-orm"
 
