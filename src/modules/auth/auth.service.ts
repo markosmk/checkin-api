@@ -2,9 +2,9 @@ import { sign } from "hono/jwt"
 import { and, eq } from "drizzle-orm"
 import bcrypt from "bcryptjs"
 import { HTTPException } from "hono/http-exception"
-import { App, DB } from "../../types"
+import type { App, DB } from "../../types"
 import { subscriptions, TypeUseToken, users, usersTokens } from "../../db/schema"
-import { LoginSchemaInput, RegisterSchemaInput, ResetPasswordSchemaInput } from "./auth.schema"
+import type { LoginSchemaInput, RegisterSchemaInput, ResetPasswordSchemaInput } from "./auth.schema"
 import {
   EXPIRE_TIME_RESET_PASSWORD,
   EXPIRE_TIME_VERIFICATION,
@@ -15,7 +15,7 @@ import { sendEmail } from "../../lib/email"
 import * as sessionService from "./session.service"
 import * as tokenService from "./token.service"
 import * as cookieService from "./cookie.service"
-import { Context } from "hono"
+import type { Context } from "hono"
 import { getDeviceInfo } from "../../utils/helper"
 import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "../../db/enum"
 import { AppException } from "../../utils/error-handle"
@@ -116,8 +116,7 @@ export const register = async (db: DB, input: RegisterSchemaInput, envs: Env) =>
     userId: newUser.id,
     gatewayCustomerId: "",
     gatewaySubscriptionId: "",
-    gatewayPriceId: "",
-    gatewayCurrentPeriodEnd: "",
+    gatewayNextPaymentDate: "",
     subscribedAt: new Date().toISOString(),
     hadTrial: false,
     trialEndsAt: null,
@@ -127,7 +126,6 @@ export const register = async (db: DB, input: RegisterSchemaInput, envs: Env) =>
     status: SubscriptionStatus.ACTIVE,
     billingCycle: BillingCycle.MONTHLY, // o lo que decidas
     canceledAt: null,
-    nextBillingDate: null, // o lo calculas aquí
   })
 
   const verificationCode = await tokenService.generateCodeInDB(
