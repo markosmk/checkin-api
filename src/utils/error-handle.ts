@@ -1,7 +1,7 @@
 import type { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
 import type { HTTPResponseError } from "hono/types"
-import { ContentfulStatusCode } from "hono/utils/http-status"
+import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { ZodError } from "zod"
 
 export class AppException extends HTTPException {
